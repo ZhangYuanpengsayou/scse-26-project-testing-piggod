@@ -1,0 +1,35 @@
+**Software Requirements**  
+
+### **Functional Requirements**  
+1. **Blocked Path Input Handling**  
+   - The navigation component must receive and process real-time input about whether the path in front, to the left, and to the right is blocked.  
+
+2. **Goal Direction Input Handling**  
+   - The system must receive information about the robot’s goal location relative to its current position (ahead, to the left, or to the right).  
+
+3. **Goal-Priority Movement Logic**  
+   - The robot must prioritize moving toward its goal whenever it can do so safely (i.e., the direction to the goal is unblocked).  
+
+4. **Block Check for Movement**  
+   - The robot must never attempt to move into a blocked direction. All movement commands must be validated against the blocked path status.  
+
+5. **Stop Condition**  
+   - If no safe direction (front, left, or right) is available (all directions are blocked), the robot must stop and halt all movement.  
+
+6. **Environment Adaptability**  
+   - The navigation component must be designed to operate in multiple simulated environments, with configurable parameters to handle varying conditions (e.g., dynamic obstacles, terrain changes).  
+
+---
+
+### **Non-Functional Requirements**  
+1. **Reliability**  
+   - The system must handle edge cases, such as all directions being blocked, and ensure the robot stops safely in such scenarios.  
+
+2. **Consistency Across Environments**  
+   - The navigation logic must ensure consistent and predictable behavior across different simulated environments.  
+
+3. **Scalability**  
+   - The system should allow for easy modification or extension to accommodate new environmental scenarios or additional navigation rules.  
+
+---  
+This list ensures clarity, testability, and alignment with the project’s goals.
