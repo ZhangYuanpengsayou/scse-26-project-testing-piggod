@@ -1,25 +1,40 @@
+import sys
 from itertools import product
+from pathlib import Path
 
-from generated_navigation_logic import choose_navigation_action
+
+BASE_DIR = Path(__file__).parent
+GENERATED_DIR = BASE_DIR / "generated"
+sys.path.insert(0, str(GENERATED_DIR))
+
+from navigation_logic import decide_next_move
 
 
-def expected_action(sensor_data):
-    if sensor_data["goal_ahead"] and not sensor_data["front_blocked"]:
+VALID_ACTIONS = {
+    "FORWARD",
+    "LEFT",
+    "RIGHT",
+    "STOP",
+}
+
+
+def expected_action(state):
+    if state["goal_ahead"] and not state["front_blocked"]:
         return "FORWARD"
 
-    if sensor_data["goal_on_left"] and not sensor_data["left_blocked"]:
+    if state["goal_on_left"] and not state["left_blocked"]:
         return "LEFT"
 
-    if sensor_data["goal_on_right"] and not sensor_data["right_blocked"]:
+    if state["goal_on_right"] and not state["right_blocked"]:
         return "RIGHT"
 
-    if not sensor_data["front_blocked"]:
+    if not state["front_blocked"]:
         return "FORWARD"
 
-    if not sensor_data["left_blocked"]:
+    if not state["left_blocked"]:
         return "LEFT"
 
-    if not sensor_data["right_blocked"]:
+    if not state["right_blocked"]:
         return "RIGHT"
 
     return "STOP"
@@ -36,17 +51,19 @@ def all_possible_states():
     ]
 
     for values in product([False, True], repeat=len(keys)):
-        sensor_data = dict(zip(keys, values))
-        yield sensor_data, expected_action(sensor_data)
+        state = dict(zip(keys, values))
+        yield state, expected_action(state)
 
 
-def test_choose_navigation_action_for_all_possible_states():
-    for sensor_data, expected in all_possible_states():
-        assert choose_navigation_action(sensor_data) == expected
+def test_decide_next_move_for_all_possible_states():
+    for state, expected in all_possible_states():
+        action = decide_next_move(state)
+        assert action in VALID_ACTIONS
+        assert action == expected
 
 
 def test_typical_case_from_instructions():
-    sensor_data = {
+    state = {
         "goal_ahead": True,
         "goal_on_left": False,
         "goal_on_right": False,
@@ -55,10 +72,24 @@ def test_typical_case_from_instructions():
         "right_blocked": False,
     }
 
-    assert choose_navigation_action(sensor_data) == "FORWARD"
+    assert decide_next_move(state) == "FORWARD"
+
+
+def test_robot_stops_when_all_paths_are_blocked():
+    state = {
+        "goal_ahead": False,
+        "goal_on_left": False,
+        "goal_on_right": False,
+        "front_blocked": True,
+        "left_blocked": True,
+        "right_blocked": True,
+    }
+
+    assert decide_next_move(state) == "STOP"
 
 
 if __name__ == "__main__":
-    test_choose_navigation_action_for_all_possible_states()
+    test_decide_next_move_for_all_possible_states()
     test_typical_case_from_instructions()
+    test_robot_stops_when_all_paths_are_blocked()
     print("All generated navigation logic tests passed.")

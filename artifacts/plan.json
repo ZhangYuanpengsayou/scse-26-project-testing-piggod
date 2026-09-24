@@ -1,26 +1,26 @@
 {
-    "strategy": "Proceed forward while continuously scanning for obstacles, adjusting direction to avoid collisions and ensure a safe path to the goal.",
+    "strategy": "Proactive obstacle avoidance with forward progress toward the goal",
     "decisions": [
         {
-            "condition": "no obstacle directly ahead and path to goal is clear",
+            "condition": "No obstacle ahead and goal is within forward path",
             "action": "FORWARD",
-            "reason": "to move toward the goal while maintaining a clear path"
+            "reason": "To make progress toward the goal while maintaining a clear path"
         },
         {
-            "condition": "obstacle detected ahead but clear path to the left",
+            "condition": "Obstacle detected on the right side",
             "action": "LEFT",
-            "reason": "to avoid obstacles by redirecting to the left"
+            "reason": "To avoid the obstacle by adjusting direction away from the obstruction"
         },
         {
-            "condition": "obstacle detected ahead but clear path to the right",
+            "condition": "Obstacle detected on the left side",
             "action": "RIGHT",
-            "reason": "to avoid obstacles by redirecting to the right"
+            "reason": "To avoid the obstacle by adjusting direction away from the obstruction"
         },
         {
-            "condition": "obstacle ahead with no clear left or right path, or goal reached",
+            "condition": "Reached the goal or no safe path exists to continue navigation",
             "action": "STOP",
-            "reason": "to ensure safe stop when no path is available or goal is achieved"
+            "reason": "To ensure safe stopping as required by the safe_stop parameter"
         }
     ],
-    "stop_condition": "when the robot reaches the goal or detects that all paths are blocked, ensuring a safe stop"
+    "stop_condition": "Reaching the goal or when no safe path exists to continue navigation"
 }

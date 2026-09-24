@@ -93,7 +93,7 @@ def validate_python_code(code_text):
         if isinstance(node, ast.FunctionDef)
     }
 
-    return "choose_navigation_action" in function_names
+    return "decide_next_move" in function_names
 
 
 def run_developer(plan):
@@ -106,9 +106,10 @@ def run_developer(plan):
 
 Rules:
 - Return Python code only.
-- The code must define a function named choose_navigation_action(sensor_data).
-- sensor_data is a dictionary.
-- Use sensor_data.get("key_name", default_value) instead of direct dictionary indexing.
+- The code must define a main function named decide_next_move(state).
+- Other programs will call only decide_next_move(state).
+- state is a dictionary.
+- Use state.get("key_name", default_value) instead of direct dictionary indexing.
 - Useful sensor keys are goal_ahead, goal_on_left, goal_on_right, front_blocked, left_blocked, right_blocked.
 - Do not use goal_reached, front_clear, left_clear, or right_clear.
 - Use this priority order:
@@ -120,7 +121,7 @@ Rules:
   6. If right_blocked is false, return RIGHT.
   7. Otherwise return STOP.
 - The function must return only one of these strings: FORWARD, LEFT, RIGHT, STOP.
-- The function should use obstacle information from sensor_data.
+- The function should use obstacle information from state.
 - The function should stop if no safe movement is available.
 - Keep the code simple enough for a beginner Python student to understand."""
 
