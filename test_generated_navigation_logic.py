@@ -3,40 +3,29 @@ from itertools import product
 from pathlib import Path
 
 
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent
 GENERATED_DIR = BASE_DIR / "generated"
 sys.path.insert(0, str(GENERATED_DIR))
 
 from navigation_logic import decide_next_move
 
 
-VALID_ACTIONS = {
-    "FORWARD",
-    "LEFT",
-    "RIGHT",
-    "STOP",
-}
+VALID_ACTIONS = {"FORWARD", "LEFT", "RIGHT", "STOP"}
 
 
 def expected_action(state):
     if state["goal_ahead"] and not state["front_blocked"]:
         return "FORWARD"
-
     if state["goal_on_left"] and not state["left_blocked"]:
         return "LEFT"
-
     if state["goal_on_right"] and not state["right_blocked"]:
         return "RIGHT"
-
     if not state["front_blocked"]:
         return "FORWARD"
-
     if not state["left_blocked"]:
         return "LEFT"
-
     if not state["right_blocked"]:
         return "RIGHT"
-
     return "STOP"
 
 
@@ -71,25 +60,10 @@ def test_typical_case_from_instructions():
         "left_blocked": False,
         "right_blocked": False,
     }
-
     assert decide_next_move(state) == "FORWARD"
-
-
-def test_robot_stops_when_all_paths_are_blocked():
-    state = {
-        "goal_ahead": False,
-        "goal_on_left": False,
-        "goal_on_right": False,
-        "front_blocked": True,
-        "left_blocked": True,
-        "right_blocked": True,
-    }
-
-    assert decide_next_move(state) == "STOP"
 
 
 if __name__ == "__main__":
     test_decide_next_move_for_all_possible_states()
     test_typical_case_from_instructions()
-    test_robot_stops_when_all_paths_are_blocked()
     print("All generated navigation logic tests passed.")
