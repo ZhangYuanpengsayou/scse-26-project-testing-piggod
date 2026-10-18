@@ -1,0 +1,5 @@
+# Preserve the exact bytes referenced by evidence SHA-256 values across checkouts.
+artifacts/runs/** -text -whitespace
+artifacts/test_agent_smoke/** -text -whitespace
+generated/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+test_generated_navigation_logic.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

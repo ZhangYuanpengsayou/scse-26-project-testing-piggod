@@ -1,176 +1,111 @@
+import ast
 import json
-import re
-import urllib.request
-
-
-MODEL_NAME = "qwen3:8b"
-
-
-TEST_AGENT_SYSTEM_PROMPT = """You are a test agent for robot navigation logic.
-Generate pytest-style tests for a decide_next_move(state) function.
-Return Python code only.
-Do not use markdown.
-Do not explain your answer."""
-
-
-DETERMINISTIC_TEST_CODE = '''import sys
-from itertools import product
-from pathlib import Path
-
-
-BASE_DIR = Path(__file__).resolve().parent
-GENERATED_DIR = BASE_DIR / "generated"
-sys.path.insert(0, str(GENERATED_DIR))
-
-from navigation_logic import decide_next_move
-
-
-VALID_ACTIONS = {"FORWARD", "LEFT", "RIGHT", "STOP"}
-
-
-def expected_action(state):
-    if state["goal_ahead"] and not state["front_blocked"]:
-        return "FORWARD"
-    if state["goal_on_left"] and not state["left_blocked"]:
-        return "LEFT"
-    if state["goal_on_right"] and not state["right_blocked"]:
-        return "RIGHT"
-    if not state["front_blocked"]:
-        return "FORWARD"
-    if not state["left_blocked"]:
-        return "LEFT"
-    if not state["right_blocked"]:
-        return "RIGHT"
-    return "STOP"
-
-
-def all_possible_states():
-    keys = [
-        "goal_ahead",
-        "goal_on_left",
-        "goal_on_right",
-        "front_blocked",
-        "left_blocked",
-        "right_blocked",
-    ]
-
-    for values in product([False, True], repeat=len(keys)):
-        state = dict(zip(keys, values))
-        yield state, expected_action(state)
-
-
-def test_decide_next_move_for_all_possible_states():
-    for state, expected in all_possible_states():
-        action = decide_next_move(state)
-        assert action in VALID_ACTIONS
-        assert action == expected
-
-
-def test_typical_case_from_instructions():
-    state = {
-        "goal_ahead": True,
-        "goal_on_left": False,
-        "goal_on_right": False,
-        "front_blocked": False,
-        "left_blocked": False,
-        "right_blocked": False,
-    }
-    assert decide_next_move(state) == "FORWARD"
-
-
-if __name__ == "__main__":
-    test_decide_next_move_for_all_possible_states()
-    test_typical_case_from_instructions()
-    print("All generated navigation logic tests passed.")
-'''
+from developer_agent import strip_markdown_fence
+from model_client import MODEL_NAME, chat
 
 
 def ask_qwen(system_prompt, user_prompt):
-    data = {
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        "stream": False,
-    }
-
-    request = urllib.request.Request(
-        "http://127.0.0.1:11434/api/chat",
-        data=json.dumps(data).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-
-    with urllib.request.urlopen(request, timeout=120) as response:
-        result = json.loads(response.read().decode("utf-8"))
-
-    return result["message"]["content"]
+    return chat("test_agent", system_prompt, user_prompt)
 
 
-def strip_markdown_fence(text):
-    text = text.strip()
-    match = re.search(r"```(?:python)?\s*(.*?)```", text, re.DOTALL)
-
-    if match is None:
-        return text
-
-    return match.group(1).strip()
-
-
-def validate_test_code(code_text):
-    if not isinstance(code_text, str) or not code_text.strip():
-        return False
-
-    if "```" in code_text:
-        return False
-
-    required_fragments = [
-        "from navigation_logic import decide_next_move",
-        "assert",
-        "goal_ahead",
-        "goal_on_left",
-        "goal_on_right",
-        "front_blocked",
-        "left_blocked",
-        "right_blocked",
-        "FORWARD",
-        "LEFT",
-        "RIGHT",
-        "STOP",
-    ]
-
-    return all(fragment in code_text for fragment in required_fragments)
-
-
-def deterministic_test_code():
-    return DETERMINISTIC_TEST_CODE.strip()
-
-
-def run_test_agent(requirements, plan):
-    user_prompt = f"""Generate pytest tests for generated/navigation_logic.py.
-
-Requirements:
-{json.dumps(requirements, indent=4)}
-
-Plan:
-{json.dumps(plan, indent=4)}
-
-The generated tests must:
-- Import decide_next_move from generated/navigation_logic.py.
-- Cover every possible combination of the six boolean state fields.
-- Validate that the returned action is one of FORWARD, LEFT, RIGHT, STOP.
-- Assert the expected action for each state.
-- Return Python code only."""
-
+def assemble_test_code(response):
+    """Add fixed dependencies; never replace or edit model-generated assertions."""
+    code = strip_markdown_fence(response)
     try:
-        code_text = strip_markdown_fence(
-            ask_qwen(TEST_AGENT_SYSTEM_PROMPT, user_prompt)
-        )
-    except Exception:
-        code_text = deterministic_test_code()
+        tree = ast.parse(code)
+    except SyntaxError as exc:
+        raise ValueError("Generated test source is not valid Python") from exc
+    imports = {(node.module, alias.name) for node in tree.body
+               if isinstance(node, ast.ImportFrom) and node.level == 0
+               for alias in node.names if alias.asname is None}
+    header = ["# Qwen-generated tests; missing standard imports are supplied by test_agent.py."]
+    for module, name in [("itertools", "product"), ("generated.navigation_logic", "decide_next_move")]:
+        if (module, name) not in imports:
+            header.append(f"from {module} import {name}")
+    return "\n".join(header) + "\n\n" + code
 
-    if not validate_test_code(code_text):
-        code_text = deterministic_test_code()
 
-    return code_text
+def validate_test_code(code):
+    try:
+        tree = ast.parse(code)
+    except (SyntaxError, TypeError):
+        return False
+    tests = [node for node in tree.body if isinstance(node, ast.FunctionDef)
+             and node.name.startswith("test_")]
+    allowed_imports = {"itertools", "generated.navigation_logic", "navigation_logic"}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            if any(alias.name not in allowed_imports for alias in node.names):
+                return False
+        if isinstance(node, ast.ImportFrom) and node.module not in allowed_imports:
+            return False
+        if isinstance(node, ast.Name) and node.id in {"eval", "exec", "open", "__import__", "compile"}:
+            return False
+        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+            return False
+    uses_product = any(isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                       and node.func.id == "product" for node in ast.walk(tree))
+    return (len(tests) == 3 and uses_product
+            and any(isinstance(node, ast.Assert) for node in ast.walk(tree))
+            and all(not test.args.args and not test.decorator_list for test in tests)
+            and "import decide_next_move" in code)
+
+
+def run_test_agent(requirements, plan, brief_text="", navigation_code="", feedback=None):
+    if not brief_text or not navigation_code:
+        raise ValueError("Test Agent needs the brief AND the actual candidate code.")
+    prompt = """Generate Python tests. Use exactly 3 zero-argument test functions, no fixtures.
+Import product from itertools and decide_next_move from generated.navigation_logic.
+Use this EXPLICIT mapping; action strings and sensor keys are not interchangeable:
+directions = [('FORWARD', 'goal_ahead', 'front_blocked'),
+              ('LEFT', 'goal_on_left', 'left_blocked'),
+              ('RIGHT', 'goal_on_right', 'right_blocked')]
+
+test_all_states:
+- keys are goal_ahead, goal_on_left, goal_on_right, front_blocked, left_blocked, right_blocked.
+- Loop over product([False, True], repeat=6); state = dict(zip(keys, values)).
+- Compute safe = [a for a, g, b in directions if not state[b]].
+- Compute toward = [a for a, g, b in directions if state[g] and not state[b]].
+- Assert decide_next_move(state) == (toward or safe or ['STOP'])[0].
+
+test_typical_case:
+- Include ALL SIX keys. goal_ahead=True; all other five values=False.
+- Assert the action is FORWARD. All THREE obstacle keys are mandatory.
+
+test_optional_goals:
+- keys are ONLY front_blocked, left_blocked, right_blocked.
+- Loop over product([False, True], repeat=3); state = dict(zip(keys, values)).
+- safe = [a for a, g, b in directions if not state[b]].
+- Assert decide_next_move(state) == (safe or ['STOP'])[0].
+
+Add an __main__ block invoking the three functions and printing success.
+Return only complete Python code, fewer than 60 lines. No numbered individual cases.
+Do not define the navigation function; import it. No imports other than the two specified.
+The following real project context is evidence for the tests:\n"""
+    context = {"brief": brief_text, "requirements": requirements, "plan": plan,
+               "candidate_code": navigation_code}
+    if feedback is not None:
+        report = feedback.get("execution_report", {})
+        context["previous_failure"] = {
+            "errors": [{key: item.get(key) for key in ("test", "error_type", "error")}
+                       for item in report.get("results", []) if not item.get("passed")],
+            "invalid_test_inputs": report.get("invalid_test_inputs", []),
+            "coverage": report.get("unique_boolean_states_exercised", 0),
+            "optional_coverage": report.get("unique_optional_goal_states_exercised", 0),
+        }
+    prompt += json.dumps(context, indent=2)
+    prompt += """
+FINAL CHECK BEFORE RETURNING CODE:
+Use the supplied directions tuples in BOTH list comprehensions.
+Use state[b], NEVER state[f'{a}_blocked'], NEVER derive sensor keys with split/lower.
+FORWARD maps to front_blocked, not FORWARD_blocked or forward_blocked.
+The typical-case dictionary must have all six keys.
+The optional-goal dictionary must have exactly the three obstacle keys.
+Generate tests from scratch following this algorithm; do not copy a previous faulty test.
+"""
+    code = assemble_test_code(ask_qwen(
+        "You write compact, executable Python tests using the explicit algorithm provided. Return code only.",
+        prompt))
+    if not validate_test_code(code):
+        raise ValueError("Generated tests failed structural validation; no fallback used.")
+    return code

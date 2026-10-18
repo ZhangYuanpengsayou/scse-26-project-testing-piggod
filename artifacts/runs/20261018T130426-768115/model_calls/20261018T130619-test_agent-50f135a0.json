@@ -1,0 +1,29 @@
+{
+  "stage": "test_agent",
+  "source": "ollama_live",
+  "status": "started",
+  "request": {
+    "model": "qwen3:8b",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a Python Test Agent."
+      },
+      {
+        "role": "user",
+        "content": "Generate standalone Python tests with zero-argument test_* functions.\nOnly imports allowed: from itertools import product; from generated.navigation_logic import decide_next_move.\nDo not use pytest, sys, pathlib, fixtures, decorators, or redefine decide_next_move.\nEnumerate all 64 combinations using product([False, True], repeat=6).\nAssert legal output, never a blocked action, STOP iff all blocked, and the exact\ngoal-first tie-breaking contract. Use an independent oracle, not a copy of the implementation.\nInclude a typical goal-ahead case and goal-flags-omitted cases.\nAdd if __name__ == '__main__': invoking every test and then printing success.\nKeep code under 120 lines. Return code only.\nDefine exactly one pure function decide_next_move(state), without imports.\nReturn only FORWARD, LEFT, RIGHT, STOP. Use state.get for keys.\nFor the six boolean keys, select the FIRST safe goal-directed action in this order:\ngoal_ahead/front_blocked/FORWARD, goal_on_left/left_blocked/LEFT,\ngoal_on_right/right_blocked/RIGHT. If none, select the FIRST unblocked action\nin order FORWARD, LEFT, RIGHT. STOP only if all directions are blocked.\nGoal flags are optional and default False; do not require goal_reached (the simulator\nhandles arrival). Goal values can be Python bool or NumPy boolean scalars, so use\ntruth testing, not identity comparison with True. Do not mutate the input.\nReturn only Python source, no prose or markdown.\n{\n  \"brief\": \"ROBOT NAVIGATION BRIEF\\n\\nDevelop navigation logic for a mobile robot.\\n\\nThe robot receives information about whether the path\\nin front, to the left, and to the right is blocked.\\n\\nIt may also receive information about whether its goal\\nis ahead, to the left, or to the right.\\n\\nThe robot should prefer moving toward its goal whenever\\nthis can be done safely.\\n\\nIt must never move into a blocked direction.\\n\\nIf there is no safe direction available, it must stop.\\n\\nThe navigation component will eventually be tested in\\nmultiple simulated environments.\\n\",\n  \"requirements\": {\n    \"goal\": \"moving the mobile robot toward its goal while avoiding blocked directions, and stopping when no safe path exists\",\n    \"allowed_actions\": [\n      \"FORWARD\",\n      \"LEFT\",\n      \"RIGHT\",\n      \"STOP\"\n    ],\n    \"safe_stop\": true,\n    \"avoid_obstacles\": true\n  },\n  \"plan\": {\n    \"strategy\": \"The robot navigates toward its goal by prioritizing safe movement in the direction of the goal, avoiding obstacles, and stopping when no safe path exists.\",\n    \"decisions\": [\n      {\n        \"condition\": \"goal_ahead is true and front_blocked is false\",\n        \"action\": \"FORWARD\",\n        \"reason\": \"The goal is directly ahead and the front path is unblocked, allowing the robot to move toward the goal.\"\n      },\n      {\n        \"condition\": \"goal_on_left is true and left_blocked is false\",\n        \"action\": \"LEFT\",\n        \"reason\": \"The goal is on the left and the left path is unblocked, allowing the robot to move toward the goal.\"\n      },\n      {\n        \"condition\": \"goal_on_right is true and right_blocked is false\",\n        \"action\": \"RIGHT\",\n        \"reason\": \"The goal is on the right and the right path is unblocked, allowing the robot to move toward the goal.\"\n      },\n      {\n        \"condition\": \"front_blocked is true and left_blocked is true and right_blocked is true\",\n        \"action\": \"STOP\",\n        \"reason\": \"All directions are blocked, and the robot must stop to avoid obstacles and ensure safe navigation.\"\n      }\n    ],\n    \"stop_condition\": \"The robot must stop when all directions (front, left, right) are blocked to ensure safe navigation and avoid obstacles.\"\n  },\n  \"candidate_code\": \"def decide_next_move(state):\\n    if state.get('goal_ahead') and not state.get('front_blocked'):\\n        return 'FORWARD'\\n    if state.get('goal_on_left') and not state.get('left_blocked'):\\n        return 'LEFT'\\n    if state.get('goal_on_right') and not state.get('right_blocked'):\\n        return 'RIGHT'\\n    if state.get('front_blocked') and state.get('left_blocked') and state.get('right_blocked'):\\n        return 'STOP'\\n    if not state.get('front_blocked'):\\n        return 'FORWARD'\\n    if not state.get('left_blocked'):\\n        return 'LEFT'\\n    if not state.get('right_blocked'):\\n        return 'RIGHT'\\n    return 'STOP'\"\n}"
+      }
+    ],
+    "stream": false,
+    "think": false,
+    "keep_alive": 0,
+    "options": {
+      "temperature": 0,
+      "seed": 42,
+      "num_ctx": 8192,
+      "num_predict": 2400,
+      "num_gpu": 0,
+      "num_thread": 4
+    }
+  }
+}

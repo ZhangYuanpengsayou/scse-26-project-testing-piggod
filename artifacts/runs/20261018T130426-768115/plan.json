@@ -1,0 +1,26 @@
+{
+  "strategy": "The robot navigates toward its goal by prioritizing safe movement in the direction of the goal, avoiding obstacles, and stopping when no safe path exists.",
+  "decisions": [
+    {
+      "condition": "goal_ahead is true and front_blocked is false",
+      "action": "FORWARD",
+      "reason": "The goal is directly ahead and the front path is unblocked, allowing the robot to move toward the goal."
+    },
+    {
+      "condition": "goal_on_left is true and left_blocked is false",
+      "action": "LEFT",
+      "reason": "The goal is on the left and the left path is unblocked, allowing the robot to move toward the goal."
+    },
+    {
+      "condition": "goal_on_right is true and right_blocked is false",
+      "action": "RIGHT",
+      "reason": "The goal is on the right and the right path is unblocked, allowing the robot to move toward the goal."
+    },
+    {
+      "condition": "front_blocked is true and left_blocked is true and right_blocked is true",
+      "action": "STOP",
+      "reason": "All directions are blocked, and the robot must stop to avoid obstacles and ensure safe navigation."
+    }
+  ],
+  "stop_condition": "The robot must stop when all directions (front, left, right) are blocked to ensure safe navigation and avoid obstacles."
+}

@@ -1,0 +1,26 @@
+{
+    "strategy": "Proactive obstacle avoidance with forward progress toward the goal",
+    "decisions": [
+        {
+            "condition": "No obstacle ahead and goal is within forward path",
+            "action": "FORWARD",
+            "reason": "To make progress toward the goal while maintaining a clear path"
+        },
+        {
+            "condition": "Obstacle detected on the right side",
+            "action": "LEFT",
+            "reason": "To avoid the obstacle by adjusting direction away from the obstruction"
+        },
+        {
+            "condition": "Obstacle detected on the left side",
+            "action": "RIGHT",
+            "reason": "To avoid the obstacle by adjusting direction away from the obstruction"
+        },
+        {
+            "condition": "Reached the goal or no safe path exists to continue navigation",
+            "action": "STOP",
+            "reason": "To ensure safe stopping as required by the safe_stop parameter"
+        }
+    ],
+    "stop_condition": "Reaching the goal or when no safe path exists to continue navigation"
+}

@@ -1,0 +1,6 @@
+2026-10-18T13:06:44 Run started: 20261018T130644-803534; strict live Qwen, no cached fallback
+2026-10-18T13:06:44 Calling Analyst Agent (live Qwen)
+2026-10-18T13:07:02 Analyst requirements validated; calling Planner Agent (live Qwen)
+2026-10-18T13:08:26 Planner schema validated; calling Developer Agent (live Qwen)
+2026-10-18T13:09:07 Developer code structurally validated; calling Test Agent with brief and actual code
+2026-10-18T13:16:50 Pipeline FAILED: test_agent: live Qwen call failed; no fallback used. Evidence: E:\exercise\scse-26-project-testing-piggod\artifacts\runs\20261018T130644-803534\model_calls\20261018T130907-test_agent-8f27e8c3.json. No success claimed; evidence preserved.

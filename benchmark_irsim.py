@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import subprocess
@@ -36,73 +37,55 @@ def world_files():
 
 
 def classify_result(report):
-    if not report.get("reached_goal", False):
+    if (report.get("error") or report.get("return_code", 0) != 0
+            or not report.get("reached_goal", False) or report.get("steps_taken", 0) <= 0):
         return "failed"
 
-    if report.get("steps_taken", 0) <= EFFICIENT_STEP_LIMIT:
+    if 0 < report.get("steps_taken", 0) <= EFFICIENT_STEP_LIMIT:
         return "efficient"
 
     return "acceptable_but_inefficient"
 
 
-def run_irsim_benchmark_for_world(world_file, timeout=180):
-    ARTIFACTS_DIR.mkdir(exist_ok=True)
-
-    if IRSIM_REPORT_PATH.exists():
-        IRSIM_REPORT_PATH.unlink()
-
+def run_irsim_benchmark_for_world(world_file, timeout=180, navigation_path=None, output_dir=None):
+    world_file = Path(world_file).resolve()
+    navigation_path = Path(navigation_path or BASE_DIR / "generated" / "navigation_logic.py").resolve()
+    output_dir = Path(output_dir or ARTIFACTS_DIR / "benchmark_runs").resolve()
+    work_dir = output_dir / world_file.stem
+    work_dir.mkdir(parents=True, exist_ok=True)
+    report_path = work_dir / "artifacts" / "irsim_report.json"
+    if report_path.exists():
+        report_path.unlink()
     env = os.environ.copy()
-    env["MPLBACKEND"] = "Agg"
-
-    command = [
-        sys.executable,
-        str(BASE_DIR / "test_irsim_with_agent.py"),
-        str(world_file),
-    ]
-
+    env.update(MPLBACKEND="Agg", PYTHONIOENCODING="utf-8")
+    command = [sys.executable, "-X", "utf8", str(BASE_DIR / "candidate_worker.py"),
+               "irsim", str(navigation_path), str(world_file)]
+    report = {"reached_goal": False, "collision_or_done": True, "steps_taken": 0,
+              "return_code": None}
     try:
-        completed = subprocess.run(
-            command,
-            cwd=BASE_DIR,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            env=env,
-        )
-
-        if IRSIM_REPORT_PATH.exists():
-            report = json.loads(IRSIM_REPORT_PATH.read_text(encoding="utf-8"))
-        else:
-            report = {
-                "reached_goal": False,
-                "collision_or_done": True,
-                "steps_taken": 0,
-                "efficiency_status": "failed",
-                "efficiency_passed": False,
-            }
-
-        report["world_file"] = str(world_file)
-        report["world_name"] = world_file.name
+        completed = subprocess.run(command, cwd=work_dir, capture_output=True,
+                                   text=True, encoding="utf-8", timeout=timeout, env=env)
+        (work_dir / "stdout.log").write_text(completed.stdout, encoding="utf-8")
+        (work_dir / "stderr.log").write_text(completed.stderr, encoding="utf-8")
         report["return_code"] = completed.returncode
-        report["stdout_tail"] = completed.stdout[-1000:]
-        report["stderr_tail"] = completed.stderr[-1000:]
-
+        if completed.returncode != 0:
+            raise RuntimeError(f"Simulator exited with {completed.returncode}; see stderr.log")
+        raw = json.loads(report_path.read_text(encoding="utf-8"))
+        if (type(raw.get("reached_goal")) is not bool
+                or type(raw.get("collision_or_done")) is not bool
+                or type(raw.get("steps_taken")) is not int
+                or not 0 < raw["steps_taken"] <= 300):
+            raise ValueError("Malformed simulator report")
+        report.update(raw)
     except Exception as exc:
-        report = {
-            "world_file": str(world_file),
-            "world_name": world_file.name,
-            "reached_goal": False,
-            "collision_or_done": True,
-            "steps_taken": 0,
-            "efficiency_status": "failed",
-            "efficiency_passed": False,
-            "return_code": None,
-            "error": str(exc),
-        }
-
+        report.update(error=f"{type(exc).__name__}: {exc}", reached_goal=False)
+    report.update(world_file=str(world_file), world_name=world_file.name,
+                  candidate_sha256=hashlib.sha256(navigation_path.read_bytes()).hexdigest(),
+                  world_sha256=hashlib.sha256(world_file.read_bytes()).hexdigest())
     report["efficiency_status"] = classify_result(report)
     report["efficiency_passed"] = report["efficiency_status"] == "efficient"
     return report
+
 
 
 def build_benchmark_report(results):
@@ -130,15 +113,19 @@ def build_benchmark_report(results):
     }
 
 
-def run_benchmark():
-    results = [
-        run_irsim_benchmark_for_world(path)
-        for path in world_files()
-    ]
+def run_benchmark(navigation_path=None, output_dir=None):
+    output_dir = Path(output_dir or ARTIFACTS_DIR)
+    worlds = world_files()
+    if not worlds:
+        raise ValueError("No benchmark worlds found")
+    results = [run_irsim_benchmark_for_world(path, navigation_path=navigation_path,
+               output_dir=output_dir / "world_runs") for path in worlds]
     report = build_benchmark_report(results)
-    ARTIFACTS_DIR.mkdir(exist_ok=True)
-    BENCHMARK_REPORT_PATH.write_text(json.dumps(report, indent=4), encoding="utf-8")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "irsim_benchmark_report.json").write_text(
+        json.dumps(report, indent=4), encoding="utf-8")
     return report
+
 
 
 def main():

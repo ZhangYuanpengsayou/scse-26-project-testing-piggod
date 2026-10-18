@@ -1,0 +1,5 @@
+{
+  "scope": "Test Agent only, not complete pipeline",
+  "assembly": "Added missing imports to saved LIVE Qwen response; assertions unchanged",
+  "raw_response": "artifacts\\test_agent_smoke\\20261018T133443\\model_calls\\20261018T133443-test_agent-51f255f7.json"
+}

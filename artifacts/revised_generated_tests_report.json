@@ -1,0 +1,26 @@
+{
+  "candidate_sha256": "8e4233118c95f478ba97c145976222845a7cc9a0d88e20f7e7189a6246303e03",
+  "collected": 3,
+  "unique_boolean_states_exercised": 64,
+  "unique_optional_goal_states_exercised": 8,
+  "invalid_test_inputs": [],
+  "passed": true,
+  "results": [
+    {
+      "test": "test_all_states",
+      "passed": true
+    },
+    {
+      "test": "test_optional_goals",
+      "passed": true
+    },
+    {
+      "test": "test_typical_case",
+      "passed": true
+    }
+  ],
+  "return_code": 0,
+  "stdout": "",
+  "stderr": "",
+  "check_passed": true
+}

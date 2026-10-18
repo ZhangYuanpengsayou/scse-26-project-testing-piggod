@@ -1,0 +1,10 @@
+{
+  "run_id": "20261018T130426-768115",
+  "status": "interrupted",
+  "reason": "Human-supervised audit found Planner omitted the three safe-direction fallback decisions. Stopped before running candidates, added ordered-seven-decision validation, and restarted. Not a passed run.",
+  "mode": "strict_live",
+  "fallback_allowed": false,
+  "run_directory": "E:\\exercise\\scse-26-project-testing-piggod\\artifacts\\runs\\20261018T130426-768115",
+  "reviewer_source": "deterministic_rules",
+  "safety_scope": "Provided simulator terminal-state proxy, not a physical-safety proof"
+}

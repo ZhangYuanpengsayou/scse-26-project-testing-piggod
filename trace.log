@@ -1,11 +1,11 @@
-2026-10-10T10:39:56 Loaded brief.txt
-2026-10-10T10:39:58 Analyst Agent fallback loaded existing requirements.json: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-2026-10-10T10:40:01 Planner Agent fallback loaded existing plan.json: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-2026-10-10T10:40:03 Developer Agent created generated/navigation_logic.py
-2026-10-10T10:40:05 Test Agent created test_generated_navigation_logic.py
-2026-10-10T10:40:05 Simulation Runner created simulation_report.json
-2026-10-10T10:40:05 Reviewer Agent created simulation_review.json
-2026-10-10T10:41:02 IR-SIM benchmark created irsim_benchmark_report.json
-2026-10-10T10:41:02 Benchmark Reviewer created irsim_benchmark_review.json
-2026-10-10T10:41:02 Developer Revision Agent skipped because no revision was required
-2026-10-10T10:41:02 Pipeline completed
+2026-10-18T13:50:19 Run started: 20261018T135019-595370; mode=review_continuation; no automatic fallback
+2026-10-18T13:50:19 Explicit review continuation from 20261018T133807-399993; reused validated artifacts, not new calls for those four stages
+2026-10-18T13:50:19 Generated test suite frozen for original/revised comparison
+2026-10-18T13:50:19 Executing generated tests against navigation_logic.py
+2026-10-18T13:50:20 navigation_logic.py: tests=True, logical scenarios=64/64; starting IR-SIM
+2026-10-18T13:51:19 navigation_logic.py: IR-SIM goals=4/4, efficient=4
+2026-10-18T13:51:19 Calling Developer Revision Agent with actual reports and defensive-input review
+2026-10-18T13:54:08 Executing generated tests against navigation_logic_revised.py
+2026-10-18T13:54:08 navigation_logic_revised.py: tests=True, logical scenarios=64/64; starting IR-SIM
+2026-10-18T13:55:08 navigation_logic_revised.py: IR-SIM goals=4/4, efficient=4
+2026-10-18T13:55:08 Pipeline PASSED: live model stages, executed tests, original/revised benchmarks, mutation check

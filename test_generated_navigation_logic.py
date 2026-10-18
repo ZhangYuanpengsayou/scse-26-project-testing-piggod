@@ -1,69 +1,42 @@
-import sys
+# Qwen-generated tests; missing standard imports are supplied by test_agent.py.
+from generated.navigation_logic import decide_next_move
+
 from itertools import product
-from pathlib import Path
 
-
-BASE_DIR = Path(__file__).resolve().parent
-GENERATED_DIR = BASE_DIR / "generated"
-sys.path.insert(0, str(GENERATED_DIR))
-
-from navigation_logic import decide_next_move
-
-
-VALID_ACTIONS = {"FORWARD", "LEFT", "RIGHT", "STOP"}
-
-
-def expected_action(state):
-    if state["goal_ahead"] and not state["front_blocked"]:
-        return "FORWARD"
-    if state["goal_on_left"] and not state["left_blocked"]:
-        return "LEFT"
-    if state["goal_on_right"] and not state["right_blocked"]:
-        return "RIGHT"
-    if not state["front_blocked"]:
-        return "FORWARD"
-    if not state["left_blocked"]:
-        return "LEFT"
-    if not state["right_blocked"]:
-        return "RIGHT"
-    return "STOP"
-
-
-def all_possible_states():
-    keys = [
-        "goal_ahead",
-        "goal_on_left",
-        "goal_on_right",
-        "front_blocked",
-        "left_blocked",
-        "right_blocked",
-    ]
-
-    for values in product([False, True], repeat=len(keys)):
+def test_all_states():
+    directions = [('FORWARD', 'goal_ahead', 'front_blocked'),
+                  ('LEFT', 'goal_on_left', 'left_blocked'),
+                  ('RIGHT', 'goal_on_right', 'right_blocked')]
+    keys = ['goal_ahead', 'goal_on_left', 'goal_on_right', 'front_blocked', 'left_blocked', 'right_blocked']
+    for values in product([False, True], repeat=6):
         state = dict(zip(keys, values))
-        yield state, expected_action(state)
+        safe = [a for a, g, b in directions if not state[b]]
+        toward = [a for a, g, b in directions if state[g] and not state[b]]
+        assert decide_next_move(state) == (toward or safe or ['STOP'])[0]
 
-
-def test_decide_next_move_for_all_possible_states():
-    for state, expected in all_possible_states():
-        action = decide_next_move(state)
-        assert action in VALID_ACTIONS
-        assert action == expected
-
-
-def test_typical_case_from_instructions():
+def test_typical_case():
     state = {
-        "goal_ahead": True,
-        "goal_on_left": False,
-        "goal_on_right": False,
-        "front_blocked": False,
-        "left_blocked": False,
-        "right_blocked": False,
+        'goal_ahead': True,
+        'goal_on_left': False,
+        'goal_on_right': False,
+        'front_blocked': False,
+        'left_blocked': False,
+        'right_blocked': False
     }
-    assert decide_next_move(state) == "FORWARD"
+    assert decide_next_move(state) == 'FORWARD'
 
+def test_optional_goals():
+    directions = [('FORWARD', 'goal_ahead', 'front_blocked'),
+                  ('LEFT', 'goal_on_left', 'left_blocked'),
+                  ('RIGHT', 'goal_on_right', 'right_blocked')]
+    keys = ['front_blocked', 'left_blocked', 'right_blocked']
+    for values in product([False, True], repeat=3):
+        state = dict(zip(keys, values))
+        safe = [a for a, g, b in directions if not state[b]]
+        assert decide_next_move(state) == (safe or ['STOP'])[0]
 
-if __name__ == "__main__":
-    test_decide_next_move_for_all_possible_states()
-    test_typical_case_from_instructions()
-    print("All generated navigation logic tests passed.")
+if __name__ == '__main__':
+    test_all_states()
+    test_typical_case()
+    test_optional_goals()
+    print("All tests passed.")

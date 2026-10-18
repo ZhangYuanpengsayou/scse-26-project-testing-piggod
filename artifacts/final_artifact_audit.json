@@ -1,0 +1,24 @@
+{
+  "run_id": "20261018T135019-595370",
+  "source_run_id": "20261018T133807-399993",
+  "checks": {
+    "latest_run_passed": true,
+    "explicit_review_provenance": true,
+    "source_modules_match_snapshot": true,
+    "original_hash_matches": true,
+    "revised_hash_matches": true,
+    "tests_hash_matches": true,
+    "five_live_parent_stages": true,
+    "one_live_review_revision": true,
+    "original_matches_raw_model_output": true,
+    "revision_matches_raw_model_output": true,
+    "tests_match_documented_assembly": true,
+    "requirements_match_live_response": true,
+    "plan_matches_live_response": true,
+    "published_revised_tests_pass": true,
+    "regression_tests_pass": true,
+    "mutation_passes": true,
+    "both_benchmarks_match_candidates": true
+  },
+  "all_checks_passed": true
+}

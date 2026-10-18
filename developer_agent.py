@@ -1,185 +1,80 @@
 import ast
 import json
 import re
-import urllib.request
 from pathlib import Path
+from model_client import MODEL_NAME, chat
 
-
-MODEL_NAME = "qwen3:8b"
-ALLOWED_ACTIONS = {"FORWARD", "LEFT", "RIGHT", "STOP"}
-
-
-DEVELOPER_SYSTEM_PROMPT = """You are a developer agent for a robot navigation project.
-You receive a validated navigation plan and generate Python code.
-Return Python code only.
-Do not use markdown.
-Do not explain your answer."""
-
-
-REVISION_SYSTEM_PROMPT = """You are a developer revision agent.
-You receive the original navigation code, review notes, benchmark results,
-requirements, and plan. Generate improved Python navigation logic.
-Return Python code only.
-Do not use markdown.
-Do not explain your answer."""
-
-
-DETERMINISTIC_NAVIGATION_CODE = '''def decide_next_move(state):
-    if state.get("goal_ahead", False) and not state.get("front_blocked", False):
-        return "FORWARD"
-    if state.get("goal_on_left", False) and not state.get("left_blocked", False):
-        return "LEFT"
-    if state.get("goal_on_right", False) and not state.get("right_blocked", False):
-        return "RIGHT"
-    if not state.get("front_blocked", False):
-        return "FORWARD"
-    if not state.get("left_blocked", False):
-        return "LEFT"
-    if not state.get("right_blocked", False):
-        return "RIGHT"
-    return "STOP"
-'''
+NAVIGATION_CONTRACT = """Define exactly one pure function decide_next_move(state), without imports.
+Return only FORWARD, LEFT, RIGHT, STOP. Use state.get for keys.
+For the six boolean keys, select the FIRST safe goal-directed action in this order:
+goal_ahead/front_blocked/FORWARD, goal_on_left/left_blocked/LEFT,
+goal_on_right/right_blocked/RIGHT. If none, select the FIRST unblocked action
+in order FORWARD, LEFT, RIGHT. STOP only if all directions are blocked.
+Goal flags are optional and default False; do not require goal_reached (the simulator
+handles arrival). Goal values can be Python bool or NumPy boolean scalars, so use
+truth testing, not identity comparison with True. Do not mutate the input.
+Return only Python source, no prose or markdown."""
 
 
 def ask_qwen(system_prompt, user_prompt, response_format=None):
-    data = {
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        "stream": False,
-    }
-
-    if response_format is not None:
-        data["format"] = response_format
-
-    request = urllib.request.Request(
-        "http://127.0.0.1:11434/api/chat",
-        data=json.dumps(data).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-
-    with urllib.request.urlopen(request, timeout=120) as response:
-        result = json.loads(response.read().decode("utf-8"))
-
-    return result["message"]["content"]
+    stage = "revision" if "revision" in system_prompt.lower() else "developer"
+    return chat(stage, system_prompt, user_prompt, response_format)
 
 
 def strip_markdown_fence(text):
-    text = text.strip()
-    match = re.search(r"```(?:python)?\s*(.*?)```", text, re.DOTALL)
-
-    if match is None:
-        return text
-
-    return match.group(1).strip()
+    match = re.fullmatch(r"```(?:python)?\s*(.*?)\s*```", text.strip(), re.DOTALL)
+    return match.group(1).strip() if match else text.strip()
 
 
 def validate_navigation_code(code_text):
-    if not isinstance(code_text, str) or not code_text.strip():
-        return False
-
-    if "```" in code_text:
-        return False
-
     try:
         tree = ast.parse(code_text)
-    except SyntaxError:
+    except (SyntaxError, TypeError):
         return False
-
-    function_names = {
-        node.name
-        for node in tree.body
-        if isinstance(node, ast.FunctionDef)
-    }
-
-    if "decide_next_move" not in function_names:
+    if len(tree.body) != 1 or not isinstance(tree.body[0], ast.FunctionDef):
         return False
+    function = tree.body[0]
+    if (function.name != "decide_next_move" or function.decorator_list
+            or len(function.args.args) != 1 or function.args.args[0].arg != "state"
+            or function.args.defaults or function.args.kwonlyargs
+            or function.args.posonlyargs or function.args.vararg or function.args.kwarg):
+        return False
+    # A narrow code-review guard, NOT a security sandbox for hostile code.
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom, ast.Global, ast.Nonlocal, ast.While)):
+            return False
+        if isinstance(node, ast.Attribute) and node.attr != "get":
+            return False
+        if isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id not in {"bool", "isinstance", "all", "any", "len", "zip"}:
+                return False
+            if not isinstance(node.func, (ast.Name, ast.Attribute)):
+                return False
+    return all(action in code_text for action in ("FORWARD", "LEFT", "RIGHT", "STOP"))
 
-    return all(action in code_text for action in ALLOWED_ACTIONS)
 
-
-def deterministic_navigation_code():
-    return DETERMINISTIC_NAVIGATION_CODE.strip()
+def checked_code(response):
+    code = strip_markdown_fence(response)
+    if not validate_navigation_code(code):
+        raise ValueError("Generated navigation failed structural validation; no fallback used.")
+    return code
 
 
 def run_developer(plan):
-    user_prompt = f"""Generate Python code from this validated navigation plan:
-
-{json.dumps(plan, indent=4)}
-
-Rules:
-- Return Python code only.
-- Define a function named decide_next_move(state).
-- state is a dictionary with these boolean keys:
-  goal_ahead, goal_on_left, goal_on_right, front_blocked, left_blocked, right_blocked.
-- The function must return only FORWARD, LEFT, RIGHT, or STOP.
-- Prefer moving toward the goal when the target direction is not blocked.
-- Never move into a blocked direction.
-- Return STOP if no safe movement is available.
-- Use state.get("key_name", default_value), not direct dictionary indexing."""
-
-    try:
-        code_text = strip_markdown_fence(
-            ask_qwen(DEVELOPER_SYSTEM_PROMPT, user_prompt)
-        )
-    except Exception:
-        code_text = deterministic_navigation_code()
-
-    if not validate_navigation_code(code_text):
-        code_text = deterministic_navigation_code()
-
-    return code_text
+    return checked_code(ask_qwen("You are a Python developer agent.",
+        NAVIGATION_CONTRACT + "\nValidated plan:\n" + json.dumps(plan, indent=2)))
 
 
-def run_developer_revision(
-    original_navigation_code,
-    review_notes,
-    benchmark_report,
-    requirements,
-    plan,
-    output_path=None,
-):
-    user_prompt = f"""Revise this robot navigation code.
-
-Original navigation code:
-{original_navigation_code}
-
-Simulation review notes:
-{json.dumps(review_notes, indent=4)}
-
-Benchmark report:
-{json.dumps(benchmark_report, indent=4)}
-
-Requirements:
-{json.dumps(requirements, indent=4)}
-
-Plan:
-{json.dumps(plan, indent=4)}
-
-Rules:
-- Return Python code only.
-- Define decide_next_move(state).
-- Return only FORWARD, LEFT, RIGHT, or STOP.
-- Prefer safe goal-directed movement.
-- Never choose a blocked direction.
-- Stop when no safe movement is available."""
-
-    try:
-        revised_code = strip_markdown_fence(
-            ask_qwen(REVISION_SYSTEM_PROMPT, user_prompt)
-        )
-    except Exception:
-        revised_code = deterministic_navigation_code()
-
-    if not validate_navigation_code(revised_code):
-        revised_code = deterministic_navigation_code()
-
+def run_developer_revision(original_navigation_code, review_notes, benchmark_report,
+                           requirements, plan, output_path=None):
+    context = {"original_navigation_code": original_navigation_code,
+               "review_notes": review_notes, "benchmark_report": benchmark_report,
+               "requirements": requirements, "plan": plan}
+    revised = checked_code(ask_qwen("You are a Python developer revision agent.",
+        NAVIGATION_CONTRACT + "\nRevise using this evidence. Preserve verified behavior.\n"
+        + json.dumps(context, indent=2)))
     if output_path is not None:
         path = Path(output_path)
-        path.parent.mkdir(exist_ok=True)
-        path.write_text(revised_code + "\n", encoding="utf-8")
-
-    return revised_code
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(revised + "\n", encoding="utf-8")
+    return revised

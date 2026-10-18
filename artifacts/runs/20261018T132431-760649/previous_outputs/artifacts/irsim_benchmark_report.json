@@ -1,0 +1,92 @@
+{
+    "total_worlds": 4,
+    "goals_reached": 4,
+    "success_rate": 1.0,
+    "efficient_worlds": 4,
+    "inefficient_success_worlds": 0,
+    "failed_worlds": 0,
+    "efficiency_rate": 1.0,
+    "average_steps_taken": 169.5,
+    "results": [
+        {
+            "reached_goal": true,
+            "collision_or_done": false,
+            "steps_taken": 150,
+            "max_steps_allowed": 300,
+            "efficient_step_limit": 200,
+            "efficiency_status": "efficient",
+            "efficiency_passed": true,
+            "final_pose": [
+                7.815877736477747,
+                1.35416409613743,
+                -0.7200000000000006
+            ],
+            "history_length": 150,
+            "world_file": "E:\\exercise\\scse-26-project-testing-piggod\\irsim_worlds\\world_easy.yaml",
+            "world_name": "world_easy.yaml",
+            "return_code": 0,
+            "stdout_tail": "build_state -> x=7.77, y=1.39, theta=-0.72, state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_}\nStep 150: state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_} action=FORWARD velocity=[0.6 0. ]\nGoal reached.\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_easy' closing in 3.00 seconds.\u001b[0m\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_easy' ended. Total time 15.00 seconds.\u001b[0m\nSimulation finished. Keeping window open...\n\nIR-SIM report:\n{'reached_goal': True, 'collision_or_done': False, 'steps_taken': 150, 'max_steps_allowed': 300, 'efficient_step_limit': 200, 'efficiency_status': 'efficient', 'efficiency_passed': True, 'final_pose': [7.815877736477747, 1.35416409613743, -0.7200000000000006], 'history_length': 150}\n",
+            "stderr_tail": ""
+        },
+        {
+            "reached_goal": true,
+            "collision_or_done": false,
+            "steps_taken": 148,
+            "max_steps_allowed": 300,
+            "efficient_step_limit": 200,
+            "efficiency_status": "efficient",
+            "efficiency_passed": true,
+            "final_pose": [
+                7.712490771958734,
+                4.253312110735628,
+                -0.40000000000000036
+            ],
+            "history_length": 148,
+            "world_file": "E:\\exercise\\scse-26-project-testing-piggod\\irsim_worlds\\world_medium.yaml",
+            "world_name": "world_medium.yaml",
+            "return_code": 0,
+            "stdout_tail": "front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_}\nTURN LOCK ACTIVE -> action=RIGHT, remaining=1\nStep 148: state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_} action=RIGHT velocity=[ 0.3 -0.8]\nGoal reached.\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_medium' closing in 3.00 seconds.\u001b[0m\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_medium' ended. Total time 14.80 seconds.\u001b[0m\nSimulation finished. Keeping window open...\n\nIR-SIM report:\n{'reached_goal': True, 'collision_or_done': False, 'steps_taken': 148, 'max_steps_allowed': 300, 'efficient_step_limit': 200, 'efficiency_status': 'efficient', 'efficiency_passed': True, 'final_pose': [7.712490771958734, 4.253312110735628, -0.40000000000000036], 'history_length': 148}\n",
+            "stderr_tail": ""
+        },
+        {
+            "reached_goal": true,
+            "collision_or_done": false,
+            "steps_taken": 187,
+            "max_steps_allowed": 300,
+            "efficient_step_limit": 200,
+            "efficiency_status": "efficient",
+            "efficiency_passed": true,
+            "final_pose": [
+                7.67814415627635,
+                8.127051090332003,
+                0.0
+            ],
+            "history_length": 187,
+            "world_file": "E:\\exercise\\scse-26-project-testing-piggod\\irsim_worlds\\world_hard.yaml",
+            "world_name": "world_hard.yaml",
+            "return_code": 0,
+            "stdout_tail": "=[0.6 0. ]\nDEBUG build_state -> x=7.62, y=8.13, theta=0.00, state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_}\nStep 187: state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_} action=FORWARD velocity=[0.6 0. ]\nGoal reached.\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_hard' closing in 3.00 seconds.\u001b[0m\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_hard' ended. Total time 18.70 seconds.\u001b[0m\nSimulation finished. Keeping window open...\n\nIR-SIM report:\n{'reached_goal': True, 'collision_or_done': False, 'steps_taken': 187, 'max_steps_allowed': 300, 'efficient_step_limit': 200, 'efficiency_status': 'efficient', 'efficiency_passed': True, 'final_pose': [7.67814415627635, 8.127051090332003, 0.0], 'history_length': 187}\n",
+            "stderr_tail": ""
+        },
+        {
+            "reached_goal": true,
+            "collision_or_done": false,
+            "steps_taken": 193,
+            "max_steps_allowed": 300,
+            "efficient_step_limit": 200,
+            "efficiency_status": "efficient",
+            "efficiency_passed": true,
+            "final_pose": [
+                7.963211951972691,
+                4.376850671335502,
+                -1.200000000000001
+            ],
+            "history_length": 193,
+            "world_file": "E:\\exercise\\scse-26-project-testing-piggod\\irsim_worlds\\world_custom.yaml",
+            "world_name": "world_custom.yaml",
+            "return_code": 0,
+            "stdout_tail": "d_state -> x=7.94, y=4.43, theta=-1.20, state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_}\nStep 193: state={'front_blocked': False, 'left_blocked': False, 'right_blocked': False, 'goal_ahead': np.True_, 'goal_on_left': np.False_, 'goal_on_right': np.False_} action=FORWARD velocity=[0.6 0. ]\nGoal reached.\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_custom' closing in 3.00 seconds.\u001b[0m\n\u001b[32m2026-10-10 10:40\u001b[0m | \u001b[1mINFO    \u001b[0m | \u001b[1mSimulation Environment 'world_custom' ended. Total time 19.30 seconds.\u001b[0m\nSimulation finished. Keeping window open...\n\nIR-SIM report:\n{'reached_goal': True, 'collision_or_done': False, 'steps_taken': 193, 'max_steps_allowed': 300, 'efficient_step_limit': 200, 'efficiency_status': 'efficient', 'efficiency_passed': True, 'final_pose': [7.963211951972691, 4.376850671335502, -1.200000000000001], 'history_length': 193}\n",
+            "stderr_tail": ""
+        }
+    ]
+}

@@ -1,0 +1,24 @@
+test_all_64_states_required (test_pipeline_integrity.PipelineIntegrityTests.test_all_64_states_required) ... ok
+test_connection_error_is_not_hidden (test_pipeline_integrity.PipelineIntegrityTests.test_connection_error_is_not_hidden) ... ok
+test_developer_does_not_fallback (test_pipeline_integrity.PipelineIntegrityTests.test_developer_does_not_fallback) ... ok
+test_efficiency_rejects_error (test_pipeline_integrity.PipelineIntegrityTests.test_efficiency_rejects_error) ... ok
+test_explicit_candidate_and_assertion_failure (test_pipeline_integrity.PipelineIntegrityTests.test_explicit_candidate_and_assertion_failure) ... ok
+test_mutation_is_detected_without_editing_candidate (test_pipeline_integrity.PipelineIntegrityTests.test_mutation_is_detected_without_editing_candidate) ... ok
+test_no_tests_is_not_a_pass (test_pipeline_integrity.PipelineIntegrityTests.test_no_tests_is_not_a_pass) ... ok
+test_nonzero_simulator_cannot_pass (test_pipeline_integrity.PipelineIntegrityTests.test_nonzero_simulator_cannot_pass) ... ok
+test_planner_cannot_omit_fallback_decisions (test_pipeline_integrity.PipelineIntegrityTests.test_planner_cannot_omit_fallback_decisions) ... ok
+test_review_rejects_failed_source_run (test_pipeline_integrity.PipelineIntegrityTests.test_review_rejects_failed_source_run) ... ok
+test_review_rejects_source_outside_run_archive (test_pipeline_integrity.PipelineIntegrityTests.test_review_rejects_source_outside_run_archive) ... ok
+test_review_rejects_tampered_candidate (test_pipeline_integrity.PipelineIntegrityTests.test_review_rejects_tampered_candidate) ... ok
+test_revision_does_not_fallback (test_pipeline_integrity.PipelineIntegrityTests.test_revision_does_not_fallback) ... ok
+test_test_agent_prompt_contains_code_and_brief (test_pipeline_integrity.PipelineIntegrityTests.test_test_agent_prompt_contains_code_and_brief) ... ok
+test_test_agent_requires_actual_inputs (test_pipeline_integrity.PipelineIntegrityTests.test_test_agent_requires_actual_inputs) ... ok
+test_test_assembly_only_adds_missing_imports (test_pipeline_integrity.PipelineIntegrityTests.test_test_assembly_only_adds_missing_imports) ... ok
+test_truncated_model_output_is_rejected (test_pipeline_integrity.PipelineIntegrityTests.test_truncated_model_output_is_rejected) ... ok
+test_unsafe_requirements_rejected (test_pipeline_integrity.PipelineIntegrityTests.test_unsafe_requirements_rejected) ... ok
+test_wrong_signature_rejected (test_pipeline_integrity.PipelineIntegrityTests.test_wrong_signature_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.576s
+
+OK

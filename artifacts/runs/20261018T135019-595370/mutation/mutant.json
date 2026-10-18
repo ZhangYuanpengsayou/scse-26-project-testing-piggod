@@ -1,0 +1,32 @@
+{
+  "candidate_sha256": "2aef02c93deddedb1a0c484ca20b17ec4d3ae70c60c79cb0ab7d9d0878f26517",
+  "collected": 3,
+  "unique_boolean_states_exercised": 9,
+  "unique_optional_goal_states_exercised": 8,
+  "invalid_test_inputs": [],
+  "passed": false,
+  "results": [
+    {
+      "test": "test_all_states",
+      "passed": false,
+      "error_type": "AssertionError",
+      "error": "",
+      "traceback": "Traceback (most recent call last):\n  File \"E:\\exercise\\scse-26-project-testing-piggod\\candidate_worker.py\", line 58, in run_tests\n    function()\n  File \"E:\\exercise\\scse-26-project-testing-piggod\\artifacts\\runs\\20261018T135019-595370\\test_generated_navigation_logic.py\", line 15, in test_all_states\n    assert decide_next_move(state) == (toward or safe or ['STOP'])[0]\nAssertionError\n"
+    },
+    {
+      "test": "test_optional_goals",
+      "passed": false,
+      "error_type": "AssertionError",
+      "error": "",
+      "traceback": "Traceback (most recent call last):\n  File \"E:\\exercise\\scse-26-project-testing-piggod\\candidate_worker.py\", line 58, in run_tests\n    function()\n  File \"E:\\exercise\\scse-26-project-testing-piggod\\artifacts\\runs\\20261018T135019-595370\\test_generated_navigation_logic.py\", line 36, in test_optional_goals\n    assert decide_next_move(state) == (safe or ['STOP'])[0]\nAssertionError\n"
+    },
+    {
+      "test": "test_typical_case",
+      "passed": true
+    }
+  ],
+  "return_code": 1,
+  "stdout": "",
+  "stderr": "",
+  "check_passed": false
+}

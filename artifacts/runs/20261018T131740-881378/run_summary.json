@@ -1,0 +1,13 @@
+{
+  "run_id": "20261018T131740-881378",
+  "status": "interrupted",
+  "initial_generated_tests_passed": false,
+  "initial_logical_scenarios_passed": 64,
+  "initial_irsim_goals_reached": 4,
+  "reason": "Stopped during revision after auditing generated tests: incorrect action.split caused IndexError; optional-goal tests did not omit goal keys. Tightened prompt, added optional-goal coverage and bounded Test Agent repair before freezing tests. No complete pipeline success claimed.",
+  "mode": "strict_live",
+  "fallback_allowed": false,
+  "run_directory": "E:\\exercise\\scse-26-project-testing-piggod\\artifacts\\runs\\20261018T131740-881378",
+  "reviewer_source": "deterministic_rules",
+  "safety_scope": "Provided simulator terminal-state proxy, not a physical-safety proof"
+}

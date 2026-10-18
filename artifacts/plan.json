@@ -1,26 +1,41 @@
 {
-    "strategy": "Proactive obstacle avoidance with forward progress toward the goal",
-    "decisions": [
-        {
-            "condition": "No obstacle ahead and goal is within forward path",
-            "action": "FORWARD",
-            "reason": "To make progress toward the goal while maintaining a clear path"
-        },
-        {
-            "condition": "Obstacle detected on the right side",
-            "action": "LEFT",
-            "reason": "To avoid the obstacle by adjusting direction away from the obstruction"
-        },
-        {
-            "condition": "Obstacle detected on the left side",
-            "action": "RIGHT",
-            "reason": "To avoid the obstacle by adjusting direction away from the obstruction"
-        },
-        {
-            "condition": "Reached the goal or no safe path exists to continue navigation",
-            "action": "STOP",
-            "reason": "To ensure safe stopping as required by the safe_stop parameter"
-        }
-    ],
-    "stop_condition": "Reaching the goal or when no safe path exists to continue navigation"
+  "strategy": "The robot follows a prioritized decision-making strategy to navigate toward its goal while avoiding obstacles. It first checks for safe goal-directed movements (goal ahead, left, or right) and attempts to move in that direction if the corresponding path is unblocked. If no direct goal path is available, it tries to move forward, then left, then right, based on which direction is unblocked. If all directions are blocked, it stops safely.",
+  "decisions": [
+    {
+      "condition": "goal_ahead and not front_blocked",
+      "action": "FORWARD",
+      "reason": "The goal is ahead and the forward path is unblocked, so move forward."
+    },
+    {
+      "condition": "goal_on_left and not left_blocked",
+      "action": "LEFT",
+      "reason": "The goal is on the left and the left path is unblocked, so turn left."
+    },
+    {
+      "condition": "goal_on_right and not right_blocked",
+      "action": "RIGHT",
+      "reason": "The goal is on the right and the right path is unblocked, so turn right."
+    },
+    {
+      "condition": "not front_blocked",
+      "action": "FORWARD",
+      "reason": "No direct goal-directed movement was possible, but forward path is unblocked, so move forward."
+    },
+    {
+      "condition": "not left_blocked",
+      "action": "LEFT",
+      "reason": "No direct goal-directed movement was possible, but left path is unblocked, so turn left."
+    },
+    {
+      "condition": "not right_blocked",
+      "action": "RIGHT",
+      "reason": "No direct goal-directed movement was possible, but right path is unblocked, so turn right."
+    },
+    {
+      "condition": "all three directions blocked",
+      "action": "STOP",
+      "reason": "All directions are blocked and no safe path exists, so stop safely."
+    }
+  ],
+  "stop_condition": "The robot must stop when all forward, left, and right paths are blocked to ensure safety."
 }

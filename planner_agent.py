@@ -1,6 +1,6 @@
 import json
 import re
-import urllib.request
+from model_client import chat
 
 
 MODEL_NAME = "qwen3:8b"
@@ -17,33 +17,8 @@ Do not explain your answer."""
 
 
 def ask_qwen(system_prompt, user_prompt):
-    data = {
-        "model": MODEL_NAME,
-        "messages": [
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
-        "stream": False,
-        "format": "json",
-    }
+    return chat("planner", system_prompt, user_prompt, "json")
 
-    request = urllib.request.Request(
-        "http://127.0.0.1:11434/api/chat",
-        data=json.dumps(data).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-
-    with urllib.request.urlopen(request, timeout=120) as response:
-        result = json.loads(response.read().decode("utf-8"))
-
-    return result["message"]["content"]
 
 
 def parse_json_response(response_text):
@@ -83,10 +58,10 @@ def validate_requirements(requirement):
     if requirement["allowed_actions"] != ALLOWED_ACTIONS:
         return False
 
-    if not isinstance(requirement["safe_stop"], bool):
+    if requirement["safe_stop"] is not True:
         return False
 
-    if not isinstance(requirement["avoid_obstacles"], bool):
+    if requirement["avoid_obstacles"] is not True:
         return False
 
     return True
@@ -140,6 +115,11 @@ def validate_plan(data):
     if planned_actions != set(ALLOWED_ACTIONS):
         return False
 
+    if [item["action"] for item in data["decisions"]] != [
+        "FORWARD", "LEFT", "RIGHT", "FORWARD", "LEFT", "RIGHT", "STOP"
+    ]:
+        return False
+
     return True
 
 
@@ -169,7 +149,23 @@ Rules:
 - Use only these actions: FORWARD, LEFT, RIGHT, STOP.
 - Include at least one decision for each action: FORWARD, LEFT, RIGHT, STOP.
 - Include at least one STOP decision.
-- The STOP decision condition must cover reaching the goal or having no safe path.
+- The decisions list MUST contain exactly SEVEN entries, evaluated in order,
+  first matching condition wins. Output each of these seven, do not omit fallback entries:
+  1. goal_ahead and not front_blocked -> FORWARD
+  2. goal_on_left and not left_blocked -> LEFT
+  3. goal_on_right and not right_blocked -> RIGHT
+  4. not front_blocked -> FORWARD (fallback when no safe goal-directed action matched)
+  5. not left_blocked -> LEFT (fallback)
+  6. not right_blocked -> RIGHT (fallback)
+  7. all three directions blocked -> STOP
+- Explain in strategy that entries are evaluated in this order and optional goal flags default false.
+- STOP when all directions are blocked. The simulator handles arrival at the goal.
+- The state has front_blocked, left_blocked, right_blocked and optional goal_ahead,
+  goal_on_left, goal_on_right; no goal_reached field exists.
+- Ordered decisions: first SAFE goal-ahead, then SAFE goal-left, then SAFE goal-right.
+  Otherwise first unblocked FORWARD, LEFT, RIGHT, otherwise STOP.
+- Every moving decision must require its own direction to be unblocked.
+- Describe this priority explicitly, including ties with multiple goal flags true.
 - Include obstacle avoidance decisions.
 - The stop_condition must respect safe_stop.
 - Return only the JSON object."""

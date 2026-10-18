@@ -1,11 +1,11 @@
 {
-    "goal": "navigate toward the goal",
-    "allowed_actions": [
-        "FORWARD",
-        "LEFT",
-        "RIGHT",
-        "STOP"
-    ],
-    "safe_stop": true,
-    "avoid_obstacles": true
+  "goal": "moving the mobile robot toward its goal while avoiding blocked directions, and stopping when no safe path exists",
+  "allowed_actions": [
+    "FORWARD",
+    "LEFT",
+    "RIGHT",
+    "STOP"
+  ],
+  "safe_stop": true,
+  "avoid_obstacles": true
 }

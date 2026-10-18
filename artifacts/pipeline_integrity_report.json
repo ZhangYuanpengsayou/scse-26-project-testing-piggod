@@ -1,0 +1,7 @@
+{
+  "scope": "Offline pipeline integrity regression tests, including mocks",
+  "tests_run": 19,
+  "passed": true,
+  "failures": [],
+  "errors": []
+}

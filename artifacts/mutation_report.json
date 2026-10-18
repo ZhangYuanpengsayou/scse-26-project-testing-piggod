@@ -1,0 +1,9 @@
+{
+  "mutation": "All directions blocked incorrectly returns FORWARD",
+  "candidate_sha256": "8e4233118c95f478ba97c145976222845a7cc9a0d88e20f7e7189a6246303e03",
+  "baseline_passed": true,
+  "mutant_killed_by_assertion": true,
+  "restored_passed": true,
+  "candidate_unchanged": true,
+  "passed": true
+}

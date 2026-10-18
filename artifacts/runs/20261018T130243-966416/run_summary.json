@@ -1,0 +1,10 @@
+{
+  "run_id": "20261018T130243-966416",
+  "status": "interrupted",
+  "reason": "Human-supervised audit detected Analyst copied the goal placeholder. Stopped process before final verification, tightened prompt and validator, then started a new run. This is not a passed run.",
+  "mode": "strict_live",
+  "fallback_allowed": false,
+  "run_directory": "E:\\exercise\\scse-26-project-testing-piggod\\artifacts\\runs\\20261018T130243-966416",
+  "reviewer_source": "deterministic_rules",
+  "safety_scope": "Provided simulator terminal-state proxy, not a physical-safety proof"
+}

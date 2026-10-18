@@ -1,29 +1,21 @@
 import json
-import sys
-import importlib
+from candidate_worker import load_candidate
 from itertools import product
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
 GENERATED_DIR = BASE_DIR / "generated"
-sys.path.insert(0, str(GENERATED_DIR))
 
 
 def expected_action(state):
-    if state["goal_ahead"] and not state["front_blocked"]:
-        return "FORWARD"
-    if state["goal_on_left"] and not state["left_blocked"]:
-        return "LEFT"
-    if state["goal_on_right"] and not state["right_blocked"]:
-        return "RIGHT"
-    if not state["front_blocked"]:
-        return "FORWARD"
-    if not state["left_blocked"]:
-        return "LEFT"
-    if not state["right_blocked"]:
-        return "RIGHT"
-    return "STOP"
+    directions = [("FORWARD", "front_blocked", "goal_ahead"),
+                  ("LEFT", "left_blocked", "goal_on_left"),
+                  ("RIGHT", "right_blocked", "goal_on_right")]
+    safe = [item for item in directions if not state[item[1]]]
+    goal_directed = [item for item in safe if state.get(item[2], False)]
+    choices = goal_directed or safe
+    return choices[0][0] if choices else "STOP"
 
 
 def all_possible_scenarios():
@@ -45,30 +37,66 @@ def all_possible_scenarios():
         }
 
 
-def run_simulation():
-    if "navigation_logic" in sys.modules:
-        del sys.modules["navigation_logic"]
-    navigation_logic = importlib.import_module("navigation_logic")
+def run_simulation(navigation_path=None):
+    navigation_path = navigation_path or GENERATED_DIR / "navigation_logic.py"
+    navigation_logic, digest = load_candidate(navigation_path)
     decide_next_move = navigation_logic.decide_next_move
 
     results = []
 
     for scenario in all_possible_scenarios():
-        actual = decide_next_move(scenario["state"])
-        passed = actual == scenario["expected"]
+        error = None
+        state = scenario["state"].copy()
+        try:
+            actual = decide_next_move(state)
+            passed = actual == scenario["expected"] and state == scenario["state"]
+        except Exception as exc:
+            actual, passed, error = None, False, str(exc)
         results.append({
             "id": scenario["id"],
             "state": scenario["state"],
             "expected": scenario["expected"],
             "actual": actual,
             "passed": passed,
+            "error": error,
         })
 
     total = len(results)
     passed_count = sum(1 for result in results if result["passed"])
     failed_count = total - passed_count
 
+    optional_goals = []
+    for values in product([False, True], repeat=3):
+        state = dict(zip(("front_blocked", "left_blocked", "right_blocked"), values))
+        expected = expected_action(state)
+        try:
+            actual = decide_next_move(state.copy())
+            optional_goals.append({"state": state, "expected": expected,
+                                   "actual": actual, "passed": actual == expected})
+        except Exception as exc:
+            optional_goals.append({"state": state, "passed": False, "error": str(exc)})
+
+    robustness = []
+    for state in [None, {}, {"front_blocked": False},
+                  {"front_blocked": False, "left_blocked": False},
+                  {"left_blocked": False, "right_blocked": False},
+                  {"front_blocked": False, "right_blocked": False},
+                  42, 0.5, True, [],
+                  ["front_blocked", "left_blocked", "right_blocked"],
+                  "front_blocked left_blocked right_blocked"]:
+        try:
+            action = decide_next_move(state)
+            robustness.append({"state": state, "expected": "STOP", "actual": action,
+                               "passed": action == "STOP"})
+        except Exception as exc:
+            robustness.append({"state": state, "passed": False, "error": str(exc)})
+
     return {
+        "candidate_sha256": digest,
+        "optional_goal_checks": optional_goals,
+        "optional_goals_passed": all(item["passed"] for item in optional_goals),
+        "robustness_checks": robustness,
+        "robustness_passed": all(item["passed"] for item in robustness),
         "total_scenarios": total,
         "passed": passed_count,
         "failed": failed_count,
